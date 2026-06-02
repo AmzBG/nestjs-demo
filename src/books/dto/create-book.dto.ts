@@ -9,4 +9,8 @@ export class CreateBookDto {
   @ApiProperty({ example: 1, description: 'Author ID' })
   @IsInt()
   authorId!: number;
+
+  @ApiProperty({ example: 1, description: 'Publisher ID' })
+  @IsInt()
+  publisherId!: number;
 }
