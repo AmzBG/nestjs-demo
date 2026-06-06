@@ -14,17 +14,21 @@ export class BooksController {
   @ApiOperation({ summary: 'Get all books' })
   @ApiQuery({ name: 'includeAuthor', required: false, type: Boolean })
   @ApiQuery({ name: 'includePublisher', required: false, type: Boolean })
+  @ApiQuery({ name: 'includeGenres', required: false, type: Boolean })
   @SwaggerResponse({ type: ApiResponseDto, description: 'List of books' })
   findAll(
     @Query('includeAuthor', new DefaultValuePipe(false), ParseBoolPipe)
     includeAuthor: boolean, 
     @Query('includePublisher', new DefaultValuePipe(false), ParseBoolPipe)
     includePublisher: boolean,
+    @Query('includeGenres', new DefaultValuePipe(false), ParseBoolPipe)
+    includeGenres: boolean,
   ) {
     
     const books = this.booksService.findAll({
       includeAuthor,
       includePublisher,
+      includeGenres,
     });
     
     return { success: true, data: books };
@@ -33,8 +37,9 @@ export class BooksController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a book by ID '})
   @ApiParam({ name: 'id', type: Number })
-  @ApiQuery({ name: 'includeAuthor', type: Boolean, required: false })
+  @ApiQuery({ name: 'includeAuthor', required: false, type: Boolean })
   @ApiQuery({ name: 'includePublisher', required: false, type: Boolean })
+  @ApiQuery({ name: 'includeGenres', required: false, type: Boolean })
   @SwaggerResponse({ type: ApiResponseDto, description: 'Single book' })
   findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -42,10 +47,13 @@ export class BooksController {
     includeAuthor: boolean,
     @Query('includePublisher', new DefaultValuePipe(false), ParseBoolPipe)
     includePublisher: boolean,
+    @Query('includeGenres', new DefaultValuePipe(false), ParseBoolPipe)
+    includeGenres: boolean,
   ) {
     const book = this.booksService.findOne(id, {
       includeAuthor,
-      includePublisher
+      includePublisher,
+      includeGenres,
     });
     
     return { success: true, data: book };

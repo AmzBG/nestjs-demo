@@ -3,17 +3,20 @@ import { AuthorsService } from '../authors/authors.service';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { PublishersService } from 'src/publishers/publishers.service';
+import { GenresService } from 'src/genres/genres.service';
 
 export interface Book {
   id: number;
   name: string;
   authorId: number;
   publisherId?: number;
+  genreIds: number[];
 }
 
 interface FindBookOptions {
   includeAuthor?: boolean;
   includePublisher?: boolean;
+  includeGenres?: boolean;
 }
 
 @Injectable()
@@ -24,22 +27,29 @@ export class BooksService {
       name: 'The 100 Day Challenge Mindset',
       authorId: 1,
       publisherId: 1,
+      genreIds: [3],
     },
     {
       id: 2,
       name: 'Learn Cloud Computing The Right Way',
       authorId: 2,
       publisherId: 2,
+      genreIds: [3],
     },
     {
       id: 3,
       name: 'How to Become a Master in Software Engineering',
       authorId: 3,
       publisherId: 1,
+      genreIds: [3],
     },
   ];
 
-  constructor(private readonly authorsService: AuthorsService, private readonly publishersService: PublishersService) {}
+  constructor(
+    private readonly authorsService: AuthorsService,
+    private readonly publishersService: PublishersService,
+    private readonly genresService: GenresService,
+  ) {}
 
   findAll(options: FindBookOptions = {}) {
     return this.books.map((book) => this.buildBookResponse(book, options));
@@ -58,6 +68,7 @@ export class BooksService {
   create(dto: CreateBookDto): Book {
     this.authorsService.findOne(dto.authorId);
     this.publishersService.findOne(dto.publisherId);
+    this.validateGenreIds(dto.genreIds);
 
     const newBook: Book = {
       id: this.books.length ? this.books[this.books.length - 1].id + 1 : 1,
@@ -84,6 +95,10 @@ export class BooksService {
       this.publishersService.findOne(dto.publisherId);
     }
 
+    if (dto.genreIds !== undefined) {
+      this.validateGenreIds(dto.genreIds);
+    }
+
     this.books[index] = { 
       ...this.books[index],
       ...dto
@@ -102,6 +117,15 @@ export class BooksService {
     const [deletedBook] = this.books.splice(index, 1);
     
     return deletedBook;
+  }
+
+  // TODO: Optimize genre validation by performing a single batch lookup
+  // instead of iterating and calling findOne() for each genre ID.
+  // Currently this results in N lookups (potential bottleneck for large N)
+  private validateGenreIds(genreIds: number[]): void {
+    genreIds.forEach((genreId) => {
+      this.genresService.findOne(genreId);
+    })
   }
 
   private buildBookResponse(book: Book, options: FindBookOptions) {
